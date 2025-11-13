@@ -31,4 +31,20 @@
         android:text="Save Frame"
         android:layout_gravity="bottom|start"
         android:layout_margin="16dp"/>
+
+    <Button
+        android:id="@+id/save_gallery_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Save to Gallery"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_margin="16dp"/>
+
+    <Button
+        android:id="@+id/auto_save_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Auto Save: OFF"
+        android:layout_gravity="bottom|center"
+        android:layout_margin="72dp"/>
 </FrameLayout>

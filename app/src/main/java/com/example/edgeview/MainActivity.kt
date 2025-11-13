@@ -5,7 +5,10 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.ImageFormat
 import android.media.Image
+import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
+import android.content.ContentValues
 import android.util.Size
 import android.widget.Button
 import android.widget.TextView
@@ -17,7 +20,11 @@ import com.example.edgeview.camera.Camera2Manager
 import com.example.edgeview.gl.GLRenderer
 import android.opengl.GLSurfaceView
 import java.io.File
+import java.io.OutputStream
 import java.nio.ByteBuffer
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -28,6 +35,8 @@ class MainActivity : ComponentActivity() {
     private lateinit var fpsText: TextView
     private lateinit var toggleBtn: Button
     private lateinit var saveBtn: Button
+    private lateinit var saveGalleryBtn: Button
+    private lateinit var autoSaveBtn: Button
 
     private val native = NativeBridge()
     private var ctx: Long = 0L
@@ -36,6 +45,8 @@ class MainActivity : ComponentActivity() {
 
     private var mode = AtomicInteger(0)
     private val saveNext = AtomicBoolean(false)
+    private val autoSave = AtomicBoolean(false)
+    private val autoSaveIntervalMs = 5000L
 
     private lateinit var inBuffer: ByteBuffer
     private lateinit var outBuffer: ByteBuffer
@@ -55,6 +66,8 @@ class MainActivity : ComponentActivity() {
         fpsText = findViewById(R.id.fps_text)
         toggleBtn = findViewById(R.id.toggle_btn)
         saveBtn = findViewById(R.id.save_btn)
+        saveGalleryBtn = findViewById(R.id.save_gallery_btn)
+        autoSaveBtn = findViewById(R.id/auto_save_btn)
 
         renderer = GLRenderer(size.width, size.height)
         glView.setEGLContextClientVersion(2)
@@ -69,6 +82,17 @@ class MainActivity : ComponentActivity() {
         saveBtn.setOnClickListener {
             saveNext.set(true)
             Toast.makeText(this, "Will save next frame…", Toast.LENGTH_SHORT).show()
+        }
+        saveGalleryBtn.setOnClickListener {
+            saveNext.set(true)
+            saveToGalleryOnNextFrame = true
+            Toast.makeText(this, "Will save to Gallery…", Toast.LENGTH_SHORT).show()
+        }
+        autoSaveBtn.setOnClickListener {
+            val newState = !autoSave.get()
+            autoSave.set(newState)
+            autoSaveBtn.text = if (newState) "Auto Save: ON" else "Auto Save: OFF"
+            if (newState) scheduleAutoSave() else cancelAutoSave()
         }
 
         inBuffer = ByteBuffer.allocateDirect(size.width*size.height*3/2)
@@ -98,6 +122,8 @@ class MainActivity : ComponentActivity() {
         }
         cam.start()
     }
+
+    private var saveToGalleryOnNextFrame = false
 
     private fun processImage(image: Image) {
         if (image.format != ImageFormat.YUV_420_888) return
@@ -130,7 +156,12 @@ class MainActivity : ComponentActivity() {
         renderer.updateFrame(outBuffer)
 
         if (saveNext.getAndSet(false)) {
-            saveFramePng(outBuffer, w, h)
+            if (saveToGalleryOnNextFrame) {
+                saveToGalleryOnNextFrame = false
+                saveFrameToGallery(outBuffer, w, h)
+            } else {
+                saveFramePng(outBuffer, w, h)
+            }
         }
 
         frames++
@@ -190,4 +221,58 @@ class MainActivity : ComponentActivity() {
             Toast.makeText(this, "Saved: ${outFile.absolutePath}", Toast.LENGTH_LONG).show()
         }
     }
+
+    private fun saveFrameToGallery(rgba: ByteBuffer, w: Int, h: Int) {
+        val name = "edge_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())}.png"
+        val values = ContentValues().apply {
+            put(MediaStore.Images.Media.DISPLAY_NAME, name)
+            put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+            if (Build.VERSION.SDK_INT >= 29) {
+                put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/EdgeView")
+                put(MediaStore.Images.Media.IS_PENDING, 1)
+            }
+        }
+        val uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+        if (uri == null) {
+            Toast.makeText(this, "Gallery save failed", Toast.LENGTH_SHORT).show(); return
+        }
+        contentResolver.openOutputStream(uri).use { os ->
+            if (os == null) { Toast.makeText(this, "Gallery save failed", Toast.LENGTH_SHORT).show(); return }
+            writeRgbaToPng(rgba, w, h, os)
+        }
+        if (Build.VERSION.SDK_INT >= 29) {
+            values.clear(); values.put(MediaStore.Images.Media.IS_PENDING, 0)
+            contentResolver.update(uri, values, null, null)
+        }
+        Toast.makeText(this, "Saved to Gallery", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun writeRgbaToPng(rgba: ByteBuffer, w: Int, h: Int, os: OutputStream) {
+        val bytes = ByteArray(w*h*4)
+        val dup = rgba.duplicate(); dup.position(0); dup.get(bytes)
+        val argb = IntArray(w*h)
+        var bi = 0; var pi = 0
+        while (bi < bytes.size) {
+            val r = bytes[bi].toInt() and 0xFF
+            val g = bytes[bi+1].toInt() and 0xFF
+            val b = bytes[bi+2].toInt() and 0xFF
+            val a = bytes[bi+3].toInt() and 0xFF
+            argb[pi++] = (a shl 24) or (r shl 16) or (g shl 8) or b
+            bi += 4
+        }
+        val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        bmp.setPixels(argb, 0, w, 0, 0, w, h)
+        bmp.compress(Bitmap.CompressFormat.PNG, 100, os)
+    }
+
+    private fun scheduleAutoSave() {
+        glView.postDelayed(object: Runnable {
+            override fun run() {
+                if (!autoSave.get()) return
+                saveNext.set(true)
+                glView.postDelayed(this, autoSaveIntervalMs)
+            }
+        }, autoSaveIntervalMs)
+    }
+    private fun cancelAutoSave() { /* no-op, flag stops the loop */ }
 }
