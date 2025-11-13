@@ -35,6 +35,7 @@ Notes
 Quick start (Web)
 - Open `web/public/index.html` in a browser directly, or
 - Install Node, then: `cd web && npm install && npm run build && npm run serve`
+- If `web/public/frame.png` exists, the page will display it; otherwise it falls back to a built-in sample image.
 
 Evaluation checklist
 - Native-C++ integration (JNI): C++ in app/src/main/cpp with JNI functions

@@ -1,5 +1,5 @@
 // 1x1 PNG (gray) valid base64 as a placeholder processed frame
-const sampleBase64 = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=`;
+const fallbackBase64 = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=`;
 
 const img = document.getElementById('frame') as HTMLImageElement;
 const stats = document.getElementById('stats') as HTMLDivElement;
@@ -16,5 +16,10 @@ function tick(){
   requestAnimationFrame(tick);
 }
 
-img.src = sampleBase64; // one static frame for demo
+function loadImage(){
+  img.onerror = () => { img.onerror = null; img.src = fallbackBase64; };
+  img.src = './frame.png';
+}
+
+loadImage();
 requestAnimationFrame(tick);
