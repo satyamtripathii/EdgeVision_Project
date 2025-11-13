@@ -129,11 +129,5 @@ Project meets 100% requirements of the R&D Intern assignment.
 
 ---
 
-## 📸 Screenshots
-*(Add after pushing to GitHub)*  
-Place in docs/ folder.
-
----
-
 ## 📄 License
 MIT (optional)
