@@ -1,4 +1,5 @@
-const sampleBase64 = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAYAAABccqhmAAAABHNCSVQICAgIfAhkiAAAABh0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwA...`;
+// 1x1 PNG (gray) valid base64 as a placeholder processed frame
+const sampleBase64 = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=`;
 
 const img = document.getElementById('frame') as HTMLImageElement;
 const stats = document.getElementById('stats') as HTMLDivElement;
