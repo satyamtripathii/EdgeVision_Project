@@ -1,0 +1,20 @@
+# Android
+/.gradle/
+/build/
+/local.properties
+/captures/
+*.iml
+/.idea/
+
+# NDK/OBJ
+**/obj/
+**/intermediates/
+
+# Node/Web
+web/node_modules/
+web/dist/
+web/.cache/
+
+# Misc
+.DS_Store
+Thumbs.db
