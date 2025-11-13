@@ -1,4 +1,6 @@
 // 1x1 PNG (gray) valid base64 as a placeholder processed frame
+import { fpsText, chooseImageSrc } from './utils.js';
+
 const fallbackBase64 = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=`;
 
 const img = document.getElementById('frame') as HTMLImageElement;
@@ -9,7 +11,7 @@ let last = performance.now();
 function tick(){
   const now = performance.now();
   if (now - last >= 1000) {
-    stats.textContent = `FPS: ${fps} | 640x480`;
+    stats.textContent = fpsText(fps, 640, 480);
     fps = 0; last = now;
   }
   fps++;
@@ -17,8 +19,8 @@ function tick(){
 }
 
 function loadImage(){
-  img.onerror = () => { img.onerror = null; img.src = fallbackBase64; };
-  img.src = './frame.png';
+  img.onerror = () => { img.onerror = null; img.src = chooseImageSrc(false, fallbackBase64); };
+  img.src = chooseImageSrc(true, fallbackBase64);
 }
 
 loadImage();

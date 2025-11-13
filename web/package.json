@@ -2,12 +2,15 @@
   "name": "edgeview-web",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "tsc",
-    "serve": "npx http-server ./public -p 8080"
+    "serve": "npx http-server ./public -p 8080",
+    "test": "npm run build && node --test public/test/**/*.js"
   },
   "devDependencies": {
     "typescript": "^5.6.3",
-    "http-server": "^14.1.1"
+    "http-server": "^14.1.1",
+    "@types/node": "^22.8.7"
   }
 }
