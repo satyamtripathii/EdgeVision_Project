@@ -80,7 +80,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        cam.stop()
+        if (this::cam.isInitialized) cam.stop()
         native.release(ctx)
     }
 

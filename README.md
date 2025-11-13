@@ -36,6 +36,9 @@ Quick start (Web)
 - Open `web/public/index.html` in a browser directly, or
 - Install Node, then: `cd web && npm install && npm run build && npm run serve`
 - If `web/public/frame.png` exists, the page will display it; otherwise it falls back to a built-in sample image.
+- To pull a real processed frame from a connected Android device after tapping "Save Frame" in the app:
+  - `pwsh scripts/pull_frame.ps1`
+  - Then open the viewer: `pwsh scripts/open_web.ps1`
 
 Evaluation checklist
 - Native-C++ integration (JNI): C++ in app/src/main/cpp with JNI functions

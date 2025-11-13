@@ -67,7 +67,8 @@ Java_com_example_edgeview_NativeBridge_processNV21ToRGBA(JNIEnv* env, jobject,
 
     cv::Mat out;
     if (mode == 2) {
-        cv::Mat edges; cv::Canny(bgr, edges, 80, 160);
+        cv::Mat gray; cv::cvtColor(bgr, gray, cv::COLOR_BGR2GRAY);
+        cv::Mat edges; cv::Canny(gray, edges, 80, 160);
         cv::cvtColor(edges, out, cv::COLOR_GRAY2RGBA);
     } else if (mode == 1) {
         cv::Mat gray; cv::cvtColor(bgr, gray, cv::COLOR_BGR2GRAY);
